@@ -1,410 +1,820 @@
-# react-mosaic
+[![NPM Version](https://img.shields.io/npm/v/react-mosaic-component.svg)](https://www.npmjs.com/package/react-mosaic-component)
+[![React](https://img.shields.io/badge/React-16%20%7C%2017%20%7C%2018%20%7C%2019-blue.svg)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
 
-[![CircleCI](https://circleci.com/gh/nomcopter/react-mosaic/tree/master.svg?style=svg)](https://circleci.com/gh/nomcopter/react-mosaic/tree/master)
-[![npm](https://img.shields.io/npm/v/react-mosaic-component.svg)](https://www.npmjs.com/package/react-mosaic-component)
+<p style="text-align: center;">
 
-react-mosaic is a full-featured React Tiling Window Manager meant to give a user complete control over their workspace.
-It provides a simple and flexible API to tile arbitrarily complex react components across a user's view.
-react-mosaic is written in TypeScript and provides typings but can be used in JavaScript as well.
+> **A powerful React Tiling Window Manager for building sophisticated, user-controlled interfaces**
 
-The best way to see it is a simple [**Demo**](https://nomcopter.github.io/react-mosaic/).
+React Mosaic is a full-featured React component library that provides complete control over complex workspace layouts. Built with TypeScript, it offers a flexible API for creating tiled interfaces that users can dynamically resize, rearrange, and customize.
+<picture>
+<img alt="React Mosaic" src="./apps/demo-app/public/favicon.svg" width="64px">
+</picture>
+
+</p>
+
+**🚀 [Live Demo](https://nomcopter.github.io/react-mosaic/) | [Documentation](https://github.com/nomcopter/react-mosaic)**
+
+## ✨ Features
+
+- 🎯 **N-ary Tree Structure**: Support for complex layouts with multiple panels and tabs
+- 🎨 **Drag & Drop**: Intuitive drag-and-drop interface for rearranging panels
+- 📱 **Responsive**: Works seamlessly on desktop and touch devices
+- 🎭 **Themeable**: Built-in Blueprint theme support with dark mode
+- 💪 **TypeScript**: Full TypeScript support with comprehensive type definitions
+- 📦 **ESM & CJS Support**: Available as both ES Modules and CommonJS for maximum compatibility
+- 🔧 **Extensible**: Customizable toolbar buttons and controls
+- 📚 **Well Documented**: Comprehensive API documentation and examples
 
 #### Screencast
 
 [![screencast demo](./screencast.gif)](./screencast.gif)
 
-## Usage
-
-The core of react-mosaic's operations revolve around the simple binary tree [specified by `MosaicNode<T>`](./src/types.ts#L12).
-[`T`](./src/types.ts#L7) is the type of the leaves of the tree and is a `string` or a `number` that can be resolved to a `JSX.Element` for display.
+## 🚀 Quick Start
 
 ### Installation
 
-1.  `yarn add react-mosaic-component`
-1.  Make sure `react-mosaic-component.css` is included on your page.
-1.  Import the `Mosaic` component and use it in your app.
-1.  (Optional) Install Blueprint
+```bash
+# Using npm
+npm install react-mosaic-component
 
-### Blueprint Theme
+# Using yarn
+yarn add react-mosaic-component
 
-Without a theme, Mosaic only loads the styles necessary for it to function -
-making it easier for the consumer to style it to match their own app.
-
-By default, Mosaic renders with the `mosaic-blueprint-theme` class.
-This uses the excellent [Blueprint](http://blueprintjs.com/) React UI Toolkit to provide a good starting state.
-It is recommended to at least start developing with this theme.
-To use it install Blueprint `yarn add @blueprintjs/core @blueprintjs/icons` and add their CSS to your page.
-Don't forget to set `blueprintNamespace` in `Mosaic` to the correct value for the version of Blueprint you are using.
-
-See [blueprint-theme.less](./styles/blueprint-theme.less) for an example of creating a theme.
-
-#### Blueprint Dark Theme
-
-Mosaic supports the Blueprint Dark Theme out of the box when rendered with the `mosaic-blueprint-theme bp3-dark` class.
-
-### Examples
-
-#### Simple Tiling
-
-##### app.css
-
-```css
-html,
-body,
-#app {
-  height: 100%;
-  width: 100%;
-  margin: 0;
-}
+# Using pnpm
+pnpm add react-mosaic-component
 ```
 
-##### App.tsx
+### Basic Setup
+
+1. Install the package
+2. Import the CSS file: `import 'react-mosaic-component/react-mosaic-component.css'`
+3. (Optional) Install Blueprint for theming: `npm install @blueprintjs/core @blueprintjs/icons`
+
+### Simple Example
 
 ```tsx
-import { Mosaic } from 'react-mosaic-component';
-
+import React from 'react';
+import { Mosaic, MosaicWindow } from 'react-mosaic-component';
 import 'react-mosaic-component/react-mosaic-component.css';
+
+// Optional: Add Blueprint theme
 import '@blueprintjs/core/lib/css/blueprint.css';
 import '@blueprintjs/icons/lib/css/blueprint-icons.css';
 
-import './app.css';
+export type ViewId = 'a' | 'b' | 'c';
 
-const ELEMENT_MAP: { [viewId: string]: JSX.Element } = {
-  a: <div>Left Window</div>,
-  b: <div>Top Right Window</div>,
-  c: <div>Bottom Right Window</div>,
+const TITLE_MAP: Record<ViewId, string> = {
+  a: 'Left Panel',
+  b: 'Top Right Panel',
+  c: 'Bottom Right Panel',
 };
 
-export const app = (
-  <div id="app">
-    <Mosaic<string>
-      renderTile={(id) => ELEMENT_MAP[id]}
+export const MyApp = () => (
+  <div style={{ height: '100vh', width: '100vw' }}>
+    <Mosaic<ViewId>
+      renderTile={(id, path) => (
+        <MosaicWindow<ViewId>
+          path={path}
+          createNode={() => 'new' as ViewId}
+          title={TITLE_MAP[id]}
+        >
+          <div style={{ padding: '20px' }}>
+            <h2>{TITLE_MAP[id]}</h2>
+            <p>This is the content for {id}</p>
+          </div>
+        </MosaicWindow>
+      )}
       initialValue={{
+        type: 'split',
         direction: 'row',
-        first: 'a',
-        second: {
-          direction: 'column',
-          first: 'b',
-          second: 'c',
-        },
-        splitPercentage: 40,
+        splitPercentages: [40, 60],
+        children: [
+          'a',
+          {
+            type: 'split',
+            direction: 'column',
+            splitPercentages: [50, 50],
+            children: ['b', 'c'],
+          },
+        ],
       }}
+      className="mosaic-blueprint-theme"
+      blueprintNamespace="bp5"
     />
   </div>
 );
 ```
 
-`renderTile` is a stateless lookup function to convert `T` into a displayable `JSX.Element`.
-By default `T` is `string` (so to render one element `initialValue="ID"` works).
-`T`s must be unique within an instance of `Mosaic`, they are used as keys for [React list management](https://reactjs.org/docs/lists-and-keys.html).
-`initialValue` is a [`MosaicNode<T>`](./src/types.ts#L12).
+## 📖 Documentation
 
-The user can resize these panes but there is no other advanced functionality.
-This example renders a simple tiled interface with one element on the left half, and two stacked elements on the right half.
-The user can resize these panes but there is no other advanced functionality.
+### Core Concepts
 
-#### Drag, Drop, and other advanced functionality with `MosaicWindow`
+#### 🌳 Tree Structure
 
-`MosaicWindow` is a component that renders a toolbar and controls around its children for a tile as well as providing full featured drag and drop functionality.
+React Mosaic uses an n-ary tree structure to represent layouts:
+
+- **Split Nodes**: Container nodes that divide space between children
+- **Tab Nodes**: Container nodes that stack children in tabs
+- **Leaf Nodes**: Individual panels identified by unique keys
+
+```typescript
+type MosaicNode<T> = MosaicSplitNode<T> | MosaicTabsNode<T> | T;
+
+interface MosaicSplitNode<T> {
+  type: 'split';
+  direction: 'row' | 'column';
+  children: MosaicNode<T>[];
+  splitPercentages?: number[];
+}
+
+interface MosaicTabsNode<T> {
+  type: 'tabs';
+  tabs: T[];
+  activeTabIndex: number;
+}
+```
+
+#### 🛣️ Paths
+
+Paths in Mosaic are arrays of numbers representing the route to a node:
+
+- `[]` - Root node
+- `[0]` - First child of root
+- `[1, 2]` - Third child of second child of root
+
+### API Reference
+
+#### Mosaic Component
+
+```typescript
+interface MosaicProps<T> {
+  // Required
+  renderTile: (id: T, path: MosaicPath) => ReactElement;
+
+  // State Management (use one or the other)
+  initialValue?: MosaicNode<T> | null; // Uncontrolled
+  value?: MosaicNode<T> | null; // Controlled
+
+  // Event Handlers
+  onChange?: (newNode: MosaicNode<T> | null) => void;
+  onRelease?: (newNode: MosaicNode<T> | null) => void;
+
+  // Styling & Theming
+  className?: string;
+  blueprintNamespace?: string;
+
+  // Functionality
+  createNode?: CreateNode<T>;
+  resize?: ResizeOptions;
+  zeroStateView?: ReactElement;
+  renderTabTitle?: TabTitleRenderer<T>;
+
+  // Drag & Drop
+  dragAndDropManager?: DragDropManager;
+  mosaicId?: string;
+}
+```
+
+#### MosaicWindow Component
+
+```typescript
+interface MosaicWindowProps<T> {
+  // Required
+  title: string;
+  path: MosaicPath;
+
+  // Styling
+  className?: string;
+
+  // Controls
+  toolbarControls?: ReactNode;
+  additionalControls?: ReactNode;
+  additionalControlButtonText?: string;
+
+  // Behavior
+  draggable?: boolean;
+  createNode?: CreateNode<T>;
+
+  // Event Handlers
+  onDragStart?: () => void;
+  onDragEnd?: (type: 'drop' | 'reset') => void;
+  onAdditionalControlsToggle?: (open: boolean) => void;
+
+  // Customization
+  renderPreview?: (props: MosaicWindowProps<T>) => ReactElement;
+  renderToolbar?: (props: MosaicWindowProps<T>) => ReactElement;
+
+  // Advanced
+  disableAdditionalControlsOverlay?: boolean;
+}
+```
+
+## 🎨 Theming
+
+### Blueprint Theme (Recommended)
+
+React Mosaic includes built-in support for the Blueprint design system:
 
 ```tsx
-export type ViewId = 'a' | 'b' | 'c' | 'new';
+import '@blueprintjs/core/lib/css/blueprint.css';
+import '@blueprintjs/icons/lib/css/blueprint-icons.css';
 
-const TITLE_MAP: Record<ViewId, string> = {
-  a: 'Left Window',
-  b: 'Top Right Window',
-  c: 'Bottom Right Window',
-  new: 'New Window',
+<Mosaic
+  className="mosaic-blueprint-theme"
+  blueprintNamespace="bp5" // Latest Blueprint version
+  // ... other props
+/>;
+```
+
+### Dark Theme
+
+Enable Blueprint's dark theme:
+
+```tsx
+<Mosaic
+  className="mosaic-blueprint-theme bp5-dark"
+  // ... other props
+/>
+```
+
+### Custom Themes
+
+Create your own themes by styling the CSS classes:
+
+```css
+.my-custom-theme {
+  --mosaic-window-border: 1px solid #e1e8ed;
+  --mosaic-window-background: #ffffff;
+  --mosaic-toolbar-background: #f5f8fa;
+}
+
+.my-custom-theme .mosaic-window {
+  border: var(--mosaic-window-border);
+  background: var(--mosaic-window-background);
+}
+
+.my-custom-theme .mosaic-window-toolbar {
+  background: var(--mosaic-toolbar-background);
+}
+```
+
+## 📝 Advanced Examples
+
+### Controlled Component
+
+```tsx
+import React, { useState } from 'react';
+import { Mosaic, MosaicNode } from 'react-mosaic-component';
+
+const ControlledExample = () => {
+  const [currentNode, setCurrentNode] = useState<MosaicNode<string> | null>({
+    type: 'split',
+    direction: 'row',
+    splitPercentages: [50, 50],
+    children: ['panel1', 'panel2'],
+  });
+
+  const handleAddPanel = () => {
+    setCurrentNode({
+      type: 'split',
+      direction: 'column',
+      splitPercentages: [70, 30],
+      children: [currentNode!, 'new-panel'],
+    });
+  };
+
+  return (
+    <div>
+      <button onClick={handleAddPanel}>Add Panel</button>
+      <Mosaic<string>
+        value={currentNode}
+        onChange={setCurrentNode}
+        renderTile={(id, path) => (
+          <MosaicWindow title={id} path={path}>
+            <div>Content for {id}</div>
+          </MosaicWindow>
+        )}
+      />
+    </div>
+  );
+};
+```
+
+### Custom Toolbar Controls
+
+```tsx
+import {
+  RemoveButton,
+  SplitButton,
+  ExpandButton,
+  Separator,
+} from 'react-mosaic-component';
+
+const customControls = (
+  <>
+    <SplitButton />
+    <ExpandButton />
+    <Separator />
+    <RemoveButton />
+    <button
+      className="mosaic-default-control"
+      onClick={() => console.log('Custom action')}
+    >
+      Custom
+    </button>
+  </>
+);
+
+<MosaicWindow title="My Panel" path={path} toolbarControls={customControls}>
+  {/* Panel content */}
+</MosaicWindow>;
+```
+
+### Tab Groups
+
+```tsx
+const tabsExample: MosaicNode<string> = {
+  type: 'tabs',
+  tabs: ['tab1', 'tab2', 'tab3'],
+  activeTabIndex: 0,
 };
 
-export const app = (
-  <Mosaic<ViewId>
-    renderTile={(id, path) => (
-      <MosaicWindow<ViewId> path={path} createNode={() => 'new'} title={TITLE_MAP[id]}>
-        <h1>{TITLE_MAP[id]}</h1>
-      </MosaicWindow>
-    )}
-    initialValue={{
+<Mosaic
+  initialValue={tabsExample}
+  renderTile={(id, path) => (
+    <div style={{ padding: '20px' }}>
+      <h3>Tab Content: {id}</h3>
+      <p>This is content for {id}</p>
+    </div>
+  )}
+  renderTabTitle={(tabKey) => `📄 ${tabKey.toUpperCase()}`}
+/>;
+```
+
+### Complex Layout with Mixed Content
+
+```tsx
+const complexLayout: MosaicNode<string> = {
+  type: 'split',
+  direction: 'column',
+  splitPercentages: [30, 70],
+  children: [
+    {
+      type: 'tabs',
+      tabs: ['overview', 'settings', 'help'],
+      activeTabIndex: 0,
+    },
+    {
+      type: 'split',
       direction: 'row',
-      first: 'a',
-      second: {
-        direction: 'column',
-        first: 'b',
-        second: 'c',
-      },
-    }}
-  />
-);
+      splitPercentages: [60, 40],
+      children: [
+        'main-content',
+        {
+          type: 'split',
+          direction: 'column',
+          splitPercentages: [50, 50],
+          children: ['sidebar1', 'sidebar2'],
+        },
+      ],
+    },
+  ],
+};
 ```
 
-Here `T` is a `ViewId` that can be used to look elements up in `TITLE_MAP`.
-This allows for easy view state specification and serialization.
-This will render a view that looks very similar to the previous examples, but now each of the windows will have a toolbar with buttons.
-These toolbars can be dragged around by a user to rearrange their workspace.
+## 🔧 Utilities & Tree Manipulation
 
-`MosaicWindow` API docs [here](#mosaicwindow).
+### Working with Trees
 
-#### Controlled vs. Uncontrolled
+```tsx
+import {
+  getLeaves,
+  createBalancedTreeFromLeaves,
+  updateTree,
+  createRemoveUpdate,
+  createExpandUpdate,
+  getNodeAtPath,
+} from 'react-mosaic-component';
 
-Mosaic views have two modes, similar to `React.DOM` input elements:
+// Get all leaf nodes (panel IDs)
+const leaves = getLeaves(currentTree);
+console.log('Panel IDs:', leaves); // ['panel1', 'panel2', 'panel3']
 
-- Controlled, where the consumer manages Mosaic's state through callbacks.
-  Using this API, the consumer can perform any operation upon the tree to change the the view as desired.
-- Uncontrolled, where Mosaic manages all of its state internally.
+// Create a balanced layout from panels
+const balancedTree = createBalancedTreeFromLeaves(leaves);
 
-See [Controlled Components](https://facebook.github.io/react/docs/forms.html#controlled-components).
+// Remove a node at a specific path
+const removeUpdate = createRemoveUpdate([1, 0]); // Remove first child of second child
+const newTree = updateTree(currentTree, [removeUpdate]);
 
-All of the previous examples show use of Mosaic in an Uncontrolled fashion.
+// Expand a node to take more space
+const expandUpdate = createExpandUpdate([0], 80); // Expand first child to 80%
+const expandedTree = updateTree(currentTree, [expandUpdate]);
 
-#### Example Application
+// Get a specific node
+const nodeAtPath = getNodeAtPath(currentTree, [1, 0]);
+```
 
-See [ExampleApp](demo/ExampleApp.tsx) (the application used in the [Demo](https://nomcopter.github.io/react-mosaic/))
-for a more interesting example that shows the usage of Mosaic as a controlled component and modifications of the tree structure.
+### Context API
 
-## API
+Access Mosaic's context in child components:
 
-#### Mosaic Props
+```tsx
+import { useContext } from 'react';
+import { MosaicWindowContext } from 'react-mosaic-component';
+
+const MyCustomComponent = () => {
+  const { mosaicActions, mosaicWindowActions } =
+    useContext(MosaicWindowContext);
+
+  const handleSplit = async () => {
+    await mosaicWindowActions.split();
+  };
+
+  const handleRemove = () => {
+    const path = mosaicWindowActions.getPath();
+    mosaicActions.remove(path);
+  };
+
+  return (
+    <div>
+      <button onClick={handleSplit}>Split Window</button>
+      <button onClick={handleRemove}>Remove Window</button>
+    </div>
+  );
+};
+```
+
+## 🏗️ Development
+
+### Requirements
+
+- Node.js 18+
+- npm/yarn/pnpm
+- React 16-19
+
+### Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/nomcopter/react-mosaic.git
+cd react-mosaic
+
+# Install dependencies
+npm install
+
+# Start development server
+npm start
+
+# Run tests
+npm test
+
+# Build library
+npm run build:lib
+```
+
+### Project Structure
+
+```
+react-mosaic/
+├── apps/
+│   └── demo-app/          # Demo application
+├── libs/
+│   └── react-mosaic-component/  # Main library
+├── test/                  # Test files
+├── docs/                  # Documentation
+└── tools/                 # Build tools
+```
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how to get started:
+
+### Development Workflow
+
+1. **Fork** the repository
+2. **Clone** your fork: `git clone https://github.com/nomcopter/react-mosaic.git`
+3. **Create** a feature branch: `git checkout -b feature/amazing-feature`
+4. **Install** dependencies: `npm install` (this automatically sets up Git hooks via lefthook)
+5. **Make** your changes
+6. **Add** tests for new functionality
+7. **Run** the test suite: `npm test`
+8. **Lint** your code: `npm run lint`
+9. **Commit** your changes following [Conventional Commits](https://www.conventionalcommits.org/):
+   ```bash
+   git commit -m "feat: add amazing feature"
+   # or
+   git commit -m "fix: resolve bug in component"
+   ```
+10. **Push** to your branch: `git push origin feature/amazing-feature`
+11. **Submit** a pull request
+
+### Commit Message Format
+
+This project enforces **Conventional Commits** for automatic changelog generation. All commits must follow this format:
+
+```
+<type>(<scope>): <subject>
+
+Examples:
+feat: add support for custom toolbar buttons
+fix(drag-drop): prevent memory leak on unmount
+docs: update installation instructions
+```
+
+**Allowed types:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+
+Commit messages are validated by lefthook Git hooks locally and in CI. Invalid commits will be rejected automatically.
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
+
+### Code Style
+
+This project uses:
+
+- **ESLint** for code linting
+- **Prettier** for code formatting
+- **TypeScript** for type checking
+- **lefthook** for Git hooks management
+
+Run these commands to ensure code quality:
+
+```bash
+npm run lint        # Check linting
+npm run format      # Format code with Prettier
+npm test            # Run tests
+```
+
+### Guidelines
+
+- Follow the existing code style
+- Write tests for new features
+- Update documentation as needed
+- Keep pull requests focused and small
+- Use Conventional Commits format for all commits
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run specific test file
+npm test -- --testNamePattern="Mosaic"
+```
+
+## 📦 Building
+
+```bash
+# Build the library
+npm run build:lib
+
+# Build the demo app
+npm run build:app
+
+# Build everything
+npm run build
+
+# Build and watch for changes
+npm run build:watch
+```
+
+## 🚀 Deployment
+
+The demo app is automatically deployed to GitHub Pages when changes are pushed to the main branch.
+
+To deploy manually:
+
+```bash
+npm run build:app
+npm run deploy
+```
+
+## 🐛 Browser Support
+
+| Browser | Version |
+| ------- | ------- |
+| Chrome  | 90+     |
+| Firefox | 88+     |
+| Safari  | 14+     |
+| Edge    | 90+     |
+
+## 📋 Migration Guide
+
+### From `react-mosaic-component` to `react-mosaic-component`
+
+Version 1 introduces significant changes with n-ary tree support:
+
+**Tree Structure Changes:**
+
+- Binary trees (`first`/`second`) → N-ary trees (`children` array)
+- `splitPercentage` → `splitPercentages` array
+- New tab node type: `MosaicTabsNode`
+
+**Path Changes:**
+
+- String paths (`['first', 'second']`) → Numeric paths (`[0, 1]`)
+
+**Type Changes:**
+
+Replace deprecated types with new ones:
 
 ```typescript
-export interface MosaicBaseProps<T extends MosaicKey> {
-  /**
-   * Lookup function to convert `T` to a displayable `JSX.Element`
-   */
-  renderTile: TileRenderer<T>;
-  /**
-   * Called when a user initiates any change to the tree (removing, adding, moving, resizing, etc.)
-   */
-  onChange?: (newNode: MosaicNode<T> | null) => void;
-  /**
-   * Called when a user completes a change (fires like above except for the interpolation during resizing)
-   */
-  onRelease?: (newNode: MosaicNode<T> | null) => void;
-  /**
-   * Additional classes to affix to the root element
-   * Default: 'mosaic-blueprint-theme'
-   */
-  className?: string;
-  /**
-   * Options that control resizing
-   * @see: [[ResizeOptions]]
-   */
-  resize?: ResizeOptions;
-  /**
-   * View to display when the current value is `null`
-   * default: Simple NonIdealState view
-   */
-  zeroStateView?: JSX.Element;
-  /**
-   * Override the mosaicId passed to `react-dnd` to control how drag and drop works with other components
-   * Note: does not support updating after instantiation
-   * default: Random UUID
-   */
-  mosaicId?: string;
-  /**
-   * Make it possible to use different versions of Blueprint with `mosaic-blueprint-theme`
-   * Note: does not support updating after instantiation
-   * default: 'bp3'
-   */
-  blueprintNamespace?: string;
-  /**
-   * Override the react-dnd provider to allow applications to inject an existing drag and drop context
-   */
-  dragAndDropManager?: DragDropManager | undefined;
-}
+// OLD: Deprecated types
+import { 
+  MosaicBranch,    // ❌ Use numeric indices instead
+  MosaicParent,    // ❌ Use MosaicSplitNode instead
+  MosaicNode       // ✅ Still valid but structure changed
+} from 'react-mosaic-component';
 
-export interface MosaicControlledProps<T extends MosaicKey> extends MosaicBaseProps<T> {
-  /**
-   * The tree to render
-   */
-  value: MosaicNode<T> | null;
-  onChange: (newNode: MosaicNode<T> | null) => void;
-}
-
-export interface MosaicUncontrolledProps<T extends MosaicKey> extends MosaicBaseProps<T> {
-  /**
-   * The initial tree to render, can be modified by the user
-   */
-  initialValue: MosaicNode<T> | null;
-}
-
-export type MosaicProps<T extends MosaicKey> = MosaicControlledProps<T> | MosaicUncontrolledProps<T>;
+// NEW: Updated types
+import { 
+  MosaicSplitNode,     // ✅ Replaces MosaicParent
+  MosaicTabsNode,      // ✅ New tab container type
+  MosaicNode,          // ✅ Union of split, tabs, or leaf
+  MosaicPath,          // ✅ Now number[] instead of string[]
+  // Helper functions for type checking
+  isSplitNode,
+  isTabsNode,
+  convertLegacyToNary  // ✅ Migration utility
+} from 'react-mosaic-component';
 ```
 
-#### `MosaicWindow`
+**Migration Steps:**
+
+1. **Update Type Checking Logic:**
 
 ```typescript
-export interface MosaicWindowProps<T extends MosaicKey> {
-  title: string;
-  /**
-   * Current path to this window, provided by `renderTile`
-   */
-  path: MosaicBranch[];
-  className?: string;
-  /**
-   * Controls in the top right of the toolbar
-   * default: [Replace, Split, Expand, Remove] if createNode is defined and [Expand, Remove] otherwise
-   */
-  toolbarControls?: React.ReactNode;
-  /**
-   * Additional controls that will be hidden in a drawer beneath the toolbar.
-   * default: []
-   */
-  additionalControls?: React.ReactNode;
-  /**
-   * Label for the button that expands the drawer
-   */
-  additionalControlButtonText?: string;
-  /**
-   * A callback that triggers when a user toggles the additional controls
-   */
-  onAdditionalControlsToggle?: (toggle: boolean) => void;
-  /**
-   * Disables the overlay that blocks interaction with the window when additional controls are open
-   */
-  disableAdditionalControlsOverlay?: boolean;
-  /**
-   * Whether or not a user should be able to drag windows around
-   */
-  draggable?: boolean;
-  /**
-   * Method called when a new node is required (such as the Split or Replace buttons)
-   */
-  createNode?: CreateNode<T>;
-  /**
-   * Optional method to override the displayed preview when a user drags a window
-   */
-  renderPreview?: (props: MosaicWindowProps<T>) => JSX.Element;
-  /**
-   * Optional method to override the displayed toolbar
-   */
-  renderToolbar?: ((props: MosaicWindowProps<T>, draggable: boolean | undefined) => JSX.Element) | null;
-  /**
-   * Optional listener for when the user begins dragging the window
-   */
-  onDragStart?: () => void;
-  /**
-   * Optional listener for when the user finishes dragging a window.
-   */
-  onDragEnd?: (type: 'drop' | 'reset') => void;
+// OLD: Manual type checking
+if ('first' in node && 'second' in node) {
+  // Handle parent node
+  const leftChild = node.first;
+  const rightChild = node.second;
+}
+
+// NEW: Use helper functions
+import { isSplitNode, isTabsNode } from 'react-mosaic-component';
+
+if (isSplitNode(node)) {
+  // Handle split node with multiple children
+  node.children.forEach((child, index) => {
+    // Process each child
+  });
+} else if (isTabsNode(node)) {
+  // Handle tab container
+  node.tabs.forEach((tab, index) => {
+    // Process each tab
+  });
+} else {
+  // Handle leaf node (panel)
+  console.log('Panel ID:', node);
 }
 ```
 
-The default controls rendered by `MosaicWindow` can be accessed from [`defaultToolbarControls`](./src/buttons/defaultToolbarControls.tsx)
-
-### Advanced API
-
-The above API is good for most consumers, however Mosaic provides functionality on the [Context](https://facebook.github.io/react/docs/context.html) of its children that make it easier to alter the view state.
-All leaves rendered by Mosaic will have the following available on React context.
-These are used extensively by `MosaicWindow`.
+2. **Update Path Handling:**
 
 ```typescript
-/**
- * Valid node types
- * @see React.Key
- */
-export type MosaicKey = string | number;
-export type MosaicBranch = 'first' | 'second';
-export type MosaicPath = MosaicBranch[];
+// OLD: String-based paths
+const oldPath: MosaicBranch[] = ['first', 'second'];
+const childPath = [...parentPath, 'first'];
 
-/**
- * Context provided to everything within Mosaic
- */
-export interface MosaicContext<T extends MosaicKey> {
-  mosaicActions: MosaicRootActions<T>;
-  mosaicId: string;
-}
-
-export interface MosaicRootActions<T extends MosaicKey> {
-  /**
-   * Increases the size of this node and bubbles up the tree
-   * @param path Path to node to expand
-   * @param percentage Every node in the path up to root will be expanded to this percentage
-   */
-  expand: (path: MosaicPath, percentage?: number) => void;
-  /**
-   * Remove the node at `path`
-   * @param path
-   */
-  remove: (path: MosaicPath) => void;
-  /**
-   * Hide the node at `path` but keep it in the DOM. Used in Drag and Drop
-   * @param path
-   */
-  hide: (path: MosaicPath) => void;
-  /**
-   * Replace currentNode at `path` with `node`
-   * @param path
-   * @param node
-   */
-  replaceWith: (path: MosaicPath, node: MosaicNode<T>) => void;
-  /**
-   * Atomically applies all updates to the current tree
-   * @param updates
-   * @param suppressOnRelease (default: false)
-   */
-  updateTree: (updates: MosaicUpdate<T>[], suppressOnRelease?: boolean) => void;
-  /**
-   * Returns the root of this Mosaic instance
-   */
-  getRoot: () => MosaicNode<T> | null;
-}
+// NEW: Numeric paths
+const newPath: MosaicPath = [0, 1];
+const childPath = [...parentPath, 0]; // First child
 ```
 
-Children (and toolbar elements) within `MosaicWindow` are passed the following additional functions on context.
+3. **Use Migration Utility for Existing Data:**
 
 ```typescript
-export interface MosaicWindowContext<T extends MosaicKey> extends MosaicContext<T> {
-  mosaicWindowActions: MosaicWindowActions;
-}
+import { convertLegacyToNary } from 'react-mosaic-component';
 
-export interface MosaicWindowActions {
-  /**
-   * Fails if no `createNode()` is defined
-   * Creates a new node and splits the current node.
-   * The current node becomes the `first` and the new node the `second` of the result.
-   * `direction` is chosen by querying the DOM and splitting along the longer axis
-   */
-  split: () => Promise<void>;
-  /**
-   * Fails if no `createNode()` is defined
-   * Convenience function to call `createNode()` and replace the current node with it.
-   */
-  replaceWithNew: () => Promise<void>;
-  /**
-   * Sets the open state for the tray that holds additional controls.
-   * Pass 'toggle' to invert the current state.
-   */
-  setAdditionalControlsOpen: (open: boolean | 'toggle') => void;
-  /**
-   * Returns the path to this window
-   */
-  getPath: () => MosaicPath;
-  /**
-   * Enables connecting a different drag source besides the react-mosaic toolbar
-   */
-  connectDragSource: (connectedElements: React.ReactElement<any>) => React.ReactElement<any>;
-}
+// Convert old tree structure to new format
+const legacyTree = {
+  direction: 'row',
+  first: 'panel1',
+  second: 'panel2',
+  splitPercentage: 40
+};
+
+const modernTree = convertLegacyToNary(legacyTree);
+// Result: { type: 'split', direction: 'row', children: ['panel1', 'panel2'], splitPercentages: [40, 60] }
 ```
 
-To access the functions simply use the [`MosaicContext`](./src/contextTypes.ts#L90)
-or [`MosaicWindowContext`](./src/contextTypes.ts#L91) [context consumers](https://reactjs.org/docs/context.html#contextconsumer).
+**Complete Migration Example:**
 
-### Mutating the Tree
+```typescript
+// Old v6 structure
+const oldTree = {
+  direction: 'row',
+  first: 'panel1',
+  second: {
+    direction: 'column',
+    first: 'panel2',
+    second: 'panel3',
+    splitPercentage: 60,
+  },
+  splitPercentage: 40,
+};
 
-Utilities are provided for working with the MosaicNode tree in [`mosaicUtilities`](src/util/mosaicUtilities.ts) and
-[`mosaicUpdates`](src/util/mosaicUpdates.ts)
+// New structure
+const newTree = {
+  type: 'split',
+  direction: 'row',
+  splitPercentages: [40, 60],
+  children: [
+    'panel1',
+    {
+      type: 'split',
+      direction: 'column',
+      splitPercentages: [60, 40],
+      children: ['panel2', 'panel3'],
+    },
+  ],
+};
 
-#### MosaicUpdate
+// Or use the conversion utility
+const convertedTree = convertLegacyToNary(oldTree);
+```
 
-[`MosaicUpdateSpec`](./src/types.ts#L33) is an argument meant to be passed to [`immutability-helper`](https://github.com/kolodny/immutability-helper)
-to modify the state at a path.
-[`mosaicUpdates`](src/util/mosaicUpdates.ts) has examples.
+**Working with the New Tree Structure:**
 
-## Upgrade Considerations / Changelog
+```typescript
+import { 
+  MosaicNode, 
+  MosaicSplitNode, 
+  MosaicTabsNode,
+  isSplitNode,
+  isTabsNode,
+  getNodeAtPath,
+  getLeaves
+} from 'react-mosaic-component';
 
-See [Releases](https://github.com/nomcopter/react-mosaic/releases)
+// Type-safe tree traversal
+function processNode<T>(node: MosaicNode<T>, path: number[] = []): void {
+  if (isSplitNode(node)) {
+    console.log(`Split node at path [${path.join(', ')}]:`, node.direction);
+    node.children.forEach((child, index) => {
+      processNode(child, [...path, index]);
+    });
+  } else if (isTabsNode(node)) {
+    console.log(`Tab group at path [${path.join(', ')}]:`, node.tabs.length, 'tabs');
+    node.tabs.forEach((tab, index) => {
+      console.log(`  Tab ${index}:`, tab);
+    });
+  } else {
+    console.log(`Panel at path [${path.join(', ')}]:`, node);
+  }
+}
 
-## License
+// Get all panels in the tree
+const allPanels = getLeaves(tree);
+
+// Get specific node by path
+const nodeAtPath = getNodeAtPath(tree, [1, 0]); // Second child's first child
+```
+
+Initial value can be specified in legacy format as the `convertLegacyToNary` utility is used internally to migrate old trees automatically.
+
+## ❓ FAQ
+
+**Q: Can I use React Mosaic without Blueprint?**
+A: Yes! Simply omit Blueprint CSS imports and use `className=""` instead of the Blueprint theme classes.
+
+**Q: How do I save and restore layouts?**
+A: The tree structure is serializable JSON. Save the `currentNode` state and restore it as `initialValue` or `value`.
+
+**Q: Can I customize the drag handles?**
+A: Yes, use the `renderToolbar` prop on `MosaicWindow` to completely customize the toolbar.
+
+**Q: Is server-side rendering (SSR) supported?**
+A: Yes, React Mosaic works with SSR frameworks like Next.js, Gatsby, and others.
+
+**Q: How do I handle deep nested layouts?**
+A: Use the utility functions like `getNodeAtPath` and `updateTree` to efficiently work with complex trees.
+
+**Q: Can I disable drag and drop?**
+A: Yes, set `draggable={false}` on `MosaicWindow` components or don't provide `createNode`.
+
+**Q: How do I add keyboard shortcuts?**
+A: Implement keyboard event handlers in your components and use the context API to trigger actions.
+
+**Q: Is there a maximum number of panels?**
+A: No hard limit, but performance may degrade with very large numbers of panels (1000+).
+
+## 🆘 Support
+
+- **GitHub Issues**: [Report bugs or request features](https://github.com/nomcopter/react-mosaic/issues)
+- **Discussions**: [Ask questions and share ideas](https://github.com/nomcopter/react-mosaic/discussions)
+- **Stack Overflow**: Use the `react-mosaic` tag
+
+## 📄 License
 
 Copyright 2019 Kevin Verdieck, originally developed at Palantir Technologies, Inc.
 
@@ -419,3 +829,11 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+---
+
+<div align="center">
+
+**⭐ Star this repository if you find it useful!**
+
+</div>

@@ -1,0 +1,81 @@
+{
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "defaultBase": "master",
+  "plugins": [
+    {
+      "plugin": "@nx/react/router-plugin",
+      "options": {
+        "buildTargetName": "build",
+        "devTargetName": "dev",
+        "startTargetName": "start",
+        "watchDepsTargetName": "watch-deps",
+        "buildDepsTargetName": "build-deps",
+        "typecheckTargetName": "typecheck"
+      }
+    },
+    {
+      "plugin": "@nx/vite/plugin",
+      "options": {
+        "buildTargetName": "build",
+        "serveTargetName": "serve",
+        "devTargetName": "dev",
+        "previewTargetName": "preview",
+        "serveStaticTargetName": "serve-static",
+        "typecheckTargetName": "typecheck",
+        "buildDepsTargetName": "build-deps",
+        "watchDepsTargetName": "watch-deps"
+      }
+    },
+    {
+      "plugin": "@nx/eslint/plugin",
+      "options": {
+        "targetName": "lint"
+      }
+    },
+    {
+      "plugin": "@nx/vitest",
+      "options": {
+        "testTargetName": "test"
+      }
+    }
+  ],
+  "generators": {
+    "@nx/react": {
+      "application": {
+        "babel": true,
+        "style": "less",
+        "linter": "none",
+        "bundler": "vite"
+      },
+      "component": {
+        "style": "less"
+      },
+      "library": {
+        "style": "less",
+        "linter": "none",
+        "unitTestRunner": "vitest"
+      }
+    }
+  },
+  "release": {
+    "changelog": {
+      "projectChangelogs": {
+        "file": false,
+        "createRelease": "github"
+      }
+    },
+    "version": {
+      "preVersionCommand": "npx nx run-many -t build",
+      "conventionalCommits": true
+    },
+    "projects": ["libs/*"]
+  },
+  "targetDefaults": {
+    "test": {
+      "dependsOn": ["^build", "^build", "^build", "^build", "^build"]
+    },
+    "nx-release-publish": {
+      "dependsOn": ["^build", "build"]
+    }
+  }
+}

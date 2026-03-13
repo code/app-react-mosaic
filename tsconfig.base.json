@@ -1,0 +1,26 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": true,
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "strict": true,
+    "lib": ["dom", "scripthost"],
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "react-mosaic-component": [
+        "libs/react-mosaic-component/src/index.ts"
+      ],
+      "react-mosaic-component/styles": [
+        "libs/react-mosaic-component/src/lib/styles/index.less"
+      ]
+    }
+  },
+  "exclude": ["docs", "lib", "node_modules"]
+}

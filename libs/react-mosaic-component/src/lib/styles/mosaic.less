@@ -1,0 +1,396 @@
+@import (reference) './mixins';
+
+@split-size: 6px;
+
+.mosaic {
+  height: 100%;
+  width: 100%;
+
+  &,
+  > * {
+    box-sizing: border-box;
+  }
+
+  .mosaic-zero-state {
+    @padding: @split-size;
+    .absolute-fill(@padding, @padding, @padding, @padding);
+    width: auto;
+    height: auto;
+    z-index: 1;
+  }
+}
+
+.mosaic-root {
+  @size: @split-size / 2;
+  .absolute-fill(@size, @size, @size, @size);
+}
+
+.mosaic-split {
+  position: absolute;
+  z-index: 1;
+  touch-action: none;
+
+  &:hover {
+    background: black;
+  }
+
+  .mosaic-split-line {
+    position: absolute;
+  }
+
+  &.-row {
+    margin-left: -@split-size / 2;
+    width: @split-size;
+    cursor: ew-resize;
+
+    .mosaic-split-line {
+      top: 0;
+      bottom: 0;
+      left: @split-size / 2;
+      right: @split-size / 2;
+    }
+  }
+
+  &.-column {
+    margin-top: -@split-size / 2;
+    height: @split-size;
+    cursor: ns-resize;
+
+    .mosaic-split-line {
+      top: @split-size / 2;
+      bottom: @split-size / 2;
+      left: 0;
+      right: 0;
+    }
+  }
+}
+
+.mosaic-tile {
+  position: absolute;
+  margin: @split-size / 2;
+
+  > * {
+    height: 100%;
+    width: 100%;
+  }
+}
+
+.split-percentages(@split-amount) {
+  @amount: ~'calc(100% - ' @split-amount ~')';
+  &.left {
+    right: @amount;
+  }
+  &.right {
+    left: @amount;
+  }
+  &.bottom {
+    top: @amount;
+  }
+  &.top {
+    bottom: @amount;
+  }
+}
+
+.mosaic-drop-target {
+  position: relative;
+
+  &.drop-target-hover .drop-target-container {
+    display: block;
+  }
+
+  &.mosaic > .drop-target-container .drop-target {
+    .split-percentages(10px);
+  }
+
+  .drop-target-container {
+    .absolute-fill();
+    display: none;
+
+    &.-dragging {
+      display: block;
+    }
+
+    .drop-target {
+      .absolute-fill();
+      .split-percentages(30%);
+      background: fade(black, 20%);
+      border: 2px solid black;
+      opacity: 0;
+      z-index: 5;
+
+      &.drop-target-hover {
+        opacity: 1;
+        .split-percentages(50%);
+      }
+    }
+  }
+}
+
+.mosaic-tabs-container {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  // Drag preview for tab containers
+  .mosaic-preview {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    z-index: 0;
+    border: 1px solid black;
+    max-height: 400px;
+    pointer-events: none; // Make sure it doesn't interfere with mouse events
+    opacity: 0; // Hide by default, react-dnd will handle showing during drag
+    visibility: hidden; // Completely hide it from layout
+  }
+
+  .mosaic-tab-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    flex-shrink: 0;
+    z-index: 4;
+    gap: 4px;
+
+    // Draggable styling is now handled by .mosaic-tab-drag-handle
+  }
+
+  .mosaic-tab-bar-tabs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    min-width: 0; // Allow flex shrinking below content size
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+
+    // Thin scrollbar for webkit browsers
+    &::-webkit-scrollbar {
+      height: 4px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 2px;
+    }
+
+    // Firefox scrollbar styling
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  }
+
+  .mosaic-tab-bar-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0; // Never shrink controls
+  }
+
+  .mosaic-tab-drag-button {
+    cursor: grab;
+    flex-shrink: 0;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
+  .mosaic-tab-toolbar-controls {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0; // Don't shrink the controls
+  }
+
+  .mosaic-tile {
+    position: relative;
+    flex: 1;
+    height: 0;
+    overflow: hidden;
+    z-index: 1;
+  }
+}
+
+// Pulse animation for drop placeholder
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+}
+
+// Base tab styling (structure only, colors in blueprint-theme.less)
+.mosaic-tab-button {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-size: 12px;
+  font-weight: normal;
+  cursor: pointer;
+  outline: none !important;
+  user-select: none;
+  white-space: nowrap;
+  transition: color 0.1s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &.-dragging {
+    opacity: 0.5;
+  }
+
+  &:focus {
+    outline: none !important;
+  }
+
+  &.focus-visible {
+    outline: 2px solid currentColor !important;
+    outline-offset: 2px;
+  }
+
+  .mosaic-tab-button-content {
+    display: flex;
+    align-items: center;
+  }
+
+  .mosaic-tab-close-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    margin-left: 2px;
+    opacity: 0.5;
+    transition: all 0.1s ease;
+    cursor: pointer;
+    font-size: 10px;
+
+    &:hover {
+      opacity: 1;
+    }
+
+    &.-cannot-close {
+      opacity: 0.3;
+      cursor: not-allowed;
+
+      &:hover {
+        opacity: 0.3;
+        background: transparent;
+      }
+    }
+  }
+}
+
+// Add tab button - minimal (structure only)
+.mosaic-tab-add-button {
+  background: transparent;
+  border: none;
+  padding: 4px 8px;
+  margin-left: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: normal;
+  outline: none !important;
+
+  &:focus {
+    outline: none !important;
+  }
+
+  &.focus-visible {
+    outline: 2px solid currentColor !important;
+    outline-offset: 2px;
+  }
+}
+
+// Tab drop target styles
+.tab-drop-target {
+  height: 100%;
+  min-height: 28px;
+  position: relative;
+  background: transparent;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  cursor: pointer;
+  display: none; // Hidden by default, shown when dragging
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  width: 2px; // Default width when not dragging
+
+  &.tab-drop-target-hover {
+    width: 40px; // Expanded width when hovering during drag
+  }
+
+  // When any item is being dragged, show the drop targets
+  &.dragging {
+    display: flex;
+    width: 20px; // Medium width when dragging but not hovering
+  }
+
+  // Drop placeholder when hovering during drag
+  .tab-drop-placeholder {
+    width: 32px;
+    height: 24px;
+    background: linear-gradient(135deg, #007acc, #0099ff);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 122, 204, 0.3);
+    border: 2px dashed white;
+    opacity: 0.9;
+    animation: pulse 1s infinite;
+
+    .tab-drop-arrow {
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 6px solid white;
+      opacity: 0.8;
+    }
+  }
+
+  // Subtle indicator when not hovering
+  .tab-drop-indicator {
+    width: 2px;
+    height: 20px;
+    border-radius: 1px;
+    transition: all 0.2s ease;
+
+    &.can-drop {
+      background: rgba(0, 122, 204, 0.2);
+    }
+
+    &.default {
+      background: rgba(0, 0, 0, 0.1);
+    }
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
